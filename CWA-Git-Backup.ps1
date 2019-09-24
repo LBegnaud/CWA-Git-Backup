@@ -224,11 +224,16 @@ Function Export-DBSchema {
         $FileContentReal | ? {$_ -ne ''} | Out-File -Force $filename
         
     }
+    $filteredCount = $rows.count
     if($info_schema){
         $rows = Get-SQLData $listSQLQuery -info_schema
     }else{
         $rows = Get-SQLData $listSQLQuery
     }
+    $difference = $rows.count - $filteredCount
+    if($difference -gt 0){
+        if($Verbose){Log-Write -FullLogPath $FullLogPath -LineValue "DB Schema export for $BackupPath found $difference rows that were not considered for differencing due to `$listSQLQueryAdditionalConditions"}
+    }    
     get-ChildItem $BackupPath -File | ? {($_.name -replace '\.sql','') -notin $rows.$nameCol} | remove-item -Force
 }
 
